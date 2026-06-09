@@ -16,7 +16,7 @@ export async function openSMS(phoneNumber: string, body: string): Promise<void> 
   await SMS.sendSMSAsync([phoneNumber], body);
 }
 
-export async function searchContacts(name: string): Promise<Contacts.Contact[]> {
+export async function searchContacts(name: string): Promise<Contacts.ExistingContact[]> {
   const { status } = await Contacts.requestPermissionsAsync();
   if (status !== 'granted') throw new Error('Contacts permission denied');
   const { data } = await Contacts.getContactsAsync({
