@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { TouchableOpacity, Text, StyleSheet, Animated } from 'react-native';
+import { colors, fonts, touch } from '../theme';
 
 interface Props {
   isRecording: boolean;
@@ -40,30 +41,30 @@ export function VoiceButton({ isRecording, onPress }: Props) {
 
 const styles = StyleSheet.create({
   button: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: touch.voiceLg,
+    height: touch.voiceLg,
+    borderRadius: touch.voiceLg / 2,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 5,
+    shadowColor: colors.accentSun,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.35,
+    shadowRadius: 20,
+    elevation: 6,
   },
   idle: {
-    backgroundColor: '#E8845C',
+    backgroundColor: colors.accentSun,
   },
   recording: {
-    backgroundColor: '#C0392B',
+    backgroundColor: colors.error,
   },
   icon: {
-    fontSize: 24,
+    fontSize: 28,
   },
   label: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#FFFFFF',
+    fontFamily: fonts.bodyBold,
+    fontSize: 14,
+    color: colors.textOnAccent,
     marginTop: 2,
     letterSpacing: 0.5,
   },

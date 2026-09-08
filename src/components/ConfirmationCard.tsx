@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { colors, fonts, fontSize, radius, touch } from '../theme';
 
 interface Props {
   prompt: string;
@@ -17,7 +18,7 @@ export function ConfirmationCard({ prompt, onConfirm, onCancel }: Props) {
         activeOpacity={0.8}
         accessibilityLabel="Confirmar acción"
       >
-        <Text style={styles.buttonText}>✓  Sí</Text>
+        <Text style={styles.buttonText}>Sí</Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={[styles.button, styles.cancelButton]}
@@ -25,7 +26,7 @@ export function ConfirmationCard({ prompt, onConfirm, onCancel }: Props) {
         activeOpacity={0.8}
         accessibilityLabel="Cancelar acción"
       >
-        <Text style={styles.buttonText}>✗  No</Text>
+        <Text style={[styles.buttonText, styles.cancelButtonText]}>Cancelar</Text>
       </TouchableOpacity>
     </View>
   );
@@ -33,44 +34,51 @@ export function ConfirmationCard({ prompt, onConfirm, onCancel }: Props) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 20,
+    backgroundColor: colors.bgElevated,
+    borderRadius: radius.md,
+    borderWidth: 2,
+    borderColor: colors.borderSubtle,
+    padding: 24,
     marginHorizontal: 12,
     marginBottom: 8,
-    shadowColor: '#000',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.08,
     shadowRadius: 6,
     elevation: 4,
   },
   prompt: {
-    fontSize: 22,
-    color: '#2C1810',
+    fontFamily: fonts.body,
+    fontSize: fontSize.body,
+    color: colors.textPrimary,
     textAlign: 'center',
     lineHeight: 32,
     marginBottom: 20,
-    fontWeight: '500',
   },
   button: {
     width: '100%',
-    height: 64,
-    borderRadius: 12,
+    height: touch.comfortable,
+    borderRadius: radius.md,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 10,
   },
   confirmButton: {
-    backgroundColor: '#4A8C6F',
+    backgroundColor: colors.success,
   },
   cancelButton: {
-    backgroundColor: '#C0392B',
+    backgroundColor: colors.bgElevated,
+    borderWidth: 2,
+    borderColor: colors.error,
     marginBottom: 0,
   },
   buttonText: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    letterSpacing: 1,
+    fontFamily: fonts.bodyBold,
+    fontSize: fontSize.body,
+    color: colors.textOnAccent,
+    letterSpacing: 0.5,
+  },
+  cancelButtonText: {
+    color: colors.error,
   },
 });

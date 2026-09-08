@@ -8,28 +8,40 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator,
   SafeAreaView,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { useFonts, AtkinsonHyperlegible_400Regular, AtkinsonHyperlegible_700Bold } from '@expo-google-fonts/atkinson-hyperlegible';
+import { Nunito_700Bold, Nunito_900Black } from '@expo-google-fonts/nunito';
 import { useAurora } from './src/hooks/useAurora';
 import { useVoiceRecorder } from './src/hooks/useVoiceRecorder';
 import { MessageBubble } from './src/components/MessageBubble';
 import { VoiceButton } from './src/components/VoiceButton';
 import { ConfirmationCard } from './src/components/ConfirmationCard';
+import { colors, fonts, fontSize, touch, radius } from './src/theme';
 
 export default function App() {
+  const [fontsLoaded] = useFonts({
+    AtkinsonHyperlegible_400Regular,
+    AtkinsonHyperlegible_700Bold,
+    Nunito_700Bold,
+    Nunito_900Black,
+  });
   const { messages, appState, confirmationPrompt, sendText, sendVoice, confirm, cancel } =
     useAurora();
   const { isRecording, startRecording, stopRecording } = useVoiceRecorder();
   const [inputText, setInputText] = useState('');
   const scrollRef = useRef<ScrollView>(null);
 
+  if (!fontsLoaded) {
+    return <View style={styles.container} />;
+  }
+
   async function handleVoicePress() {
     if (isRecording) {
       try {
-        const base64 = await stopRecording();
-        await sendVoice(base64);
+        const { base64, format } = await stopRecording();
+        await sendVoice(base64, format);
       } catch (e: any) {
         console.error('Voice error:', e);
       }
@@ -53,8 +65,7 @@ export default function App() {
     if (appState === 'loading') {
       return (
         <View style={styles.loadingArea}>
-          <ActivityIndicator size="large" color="#E8845C" />
-          <Text style={styles.loadingText}>Aurora está pensando...</Text>
+          <Text style={styles.loadingText}>Estoy pensando un momento…</Text>
         </View>
       );
     }
@@ -62,7 +73,7 @@ export default function App() {
     if (appState === 'awaiting_confirmation') {
       return (
         <ConfirmationCard
-          prompt={confirmationPrompt ?? '¿Deseas continuar?'}
+          prompt={confirmationPrompt ?? '¿Querés continuar?'}
           onConfirm={confirm}
           onCancel={cancel}
         />
@@ -72,8 +83,9 @@ export default function App() {
     if (appState === 'blocked') {
       return (
         <View style={styles.blockedArea}>
+          <Text style={styles.blockedEyebrow}>NO PUDE HACERLO</Text>
           <Text style={styles.blockedText}>
-            ⚠️ Esta acción no está disponible en este momento.
+            Esta acción no está disponible en este momento.
           </Text>
           <TouchableOpacity
             style={styles.understoodButton}
@@ -95,8 +107,8 @@ export default function App() {
             style={styles.textInput}
             value={inputText}
             onChangeText={setInputText}
-            placeholder="Escribe tu mensaje..."
-            placeholderTextColor="#B89880"
+            placeholder="Escribí tu mensaje..."
+            placeholderTextColor={colors.textSecondary}
             multiline={false}
             returnKeyType="send"
             onSubmitEditing={handleSendText}
@@ -122,7 +134,7 @@ export default function App() {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>🌅 Aurora</Text>
-        <Text style={styles.headerSubtitle}>Tu asistente personal</Text>
+        <Text style={styles.headerSubtitle}>Tu asistente</Text>
       </View>
 
       {/* Messages + Input */}
@@ -152,28 +164,29 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF8F0',
+    backgroundColor: colors.bgCanvas,
   },
   flex: {
     flex: 1,
   },
   header: {
-    backgroundColor: '#FFF8F0',
+    backgroundColor: colors.bgCanvas,
     paddingHorizontal: 20,
     paddingTop: 12,
     paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0DDD0',
+    borderBottomWidth: 2,
+    borderBottomColor: colors.borderSubtle,
   },
   headerTitle: {
+    fontFamily: fonts.displayBlack,
     fontSize: 30,
-    fontWeight: '700',
-    color: '#2C1810',
+    color: colors.textPrimary,
     letterSpacing: 0.5,
   },
   headerSubtitle: {
-    fontSize: 16,
-    color: '#8C5A40',
+    fontFamily: fonts.body,
+    fontSize: fontSize.label,
+    color: colors.textSecondary,
     marginTop: 2,
   },
   messagesList: {
@@ -183,16 +196,16 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   inputContainer: {
-    backgroundColor: '#FFF8F0',
-    borderTopWidth: 1,
-    borderTopColor: '#F0DDD0',
+    backgroundColor: colors.bgCanvas,
+    borderTopWidth: 2,
+    borderTopColor: colors.borderSubtle,
     paddingTop: 12,
     paddingBottom: 16,
   },
   idleArea: {
     alignItems: 'center',
     paddingHorizontal: 16,
-    gap: 16,
+    gap: touch.spacing,
   },
   textRow: {
     flexDirection: 'row',
@@ -202,30 +215,31 @@ const styles = StyleSheet.create({
   },
   textInput: {
     flex: 1,
-    height: 56,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 28,
+    height: touch.min,
+    backgroundColor: colors.bgElevated,
+    borderRadius: radius.md,
     paddingHorizontal: 20,
-    fontSize: 20,
-    color: '#2C1810',
-    borderWidth: 1.5,
-    borderColor: '#E8C5B0',
+    fontFamily: fonts.body,
+    fontSize: fontSize.label,
+    color: colors.textPrimary,
+    borderWidth: 2,
+    borderColor: colors.borderSubtle,
   },
   sendButton: {
-    height: 56,
+    height: touch.min,
     paddingHorizontal: 22,
-    backgroundColor: '#E8845C',
-    borderRadius: 28,
+    backgroundColor: colors.accentSun,
+    borderRadius: radius.md,
     alignItems: 'center',
     justifyContent: 'center',
   },
   sendButtonDisabled: {
-    backgroundColor: '#D4B5A4',
+    backgroundColor: colors.borderStrong,
   },
   sendButtonText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#FFFFFF',
+    fontFamily: fonts.bodyBold,
+    fontSize: fontSize.label,
+    color: colors.textOnAccent,
   },
   loadingArea: {
     alignItems: 'center',
@@ -233,35 +247,44 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   loadingText: {
-    fontSize: 20,
-    color: '#8C5A40',
+    fontFamily: fonts.body,
+    fontSize: fontSize.body,
+    color: colors.textSecondary,
     fontStyle: 'italic',
   },
   blockedArea: {
     marginHorizontal: 12,
-    backgroundColor: '#FFF3CD',
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: '#F0AD4E',
-    padding: 16,
+    backgroundColor: colors.bgSubtle,
+    borderRadius: radius.lg,
+    borderWidth: 2,
+    borderColor: colors.warning,
+    padding: 24,
     gap: 12,
   },
-  blockedText: {
-    fontSize: 20,
-    color: '#856404',
+  blockedEyebrow: {
+    fontFamily: fonts.bodyBold,
+    fontSize: fontSize.eyebrow,
+    letterSpacing: 1,
+    color: colors.warning,
     textAlign: 'center',
-    lineHeight: 28,
+  },
+  blockedText: {
+    fontFamily: fonts.body,
+    fontSize: fontSize.body,
+    color: colors.textPrimary,
+    textAlign: 'center',
+    lineHeight: 32,
   },
   understoodButton: {
-    height: 56,
-    backgroundColor: '#E8845C',
-    borderRadius: 12,
+    height: touch.comfortable,
+    backgroundColor: colors.accentSun,
+    borderRadius: radius.md,
     alignItems: 'center',
     justifyContent: 'center',
   },
   understoodButtonText: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#FFFFFF',
+    fontFamily: fonts.bodyBold,
+    fontSize: fontSize.body,
+    color: colors.textOnAccent,
   },
 });

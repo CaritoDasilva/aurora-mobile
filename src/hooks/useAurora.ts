@@ -12,7 +12,7 @@ function makeMessage(role: Message['role'], text: string): Message {
 
 export function useAurora() {
   const [messages, setMessages] = useState<Message[]>([
-    makeMessage('aurora', '¡Hola! Soy Aurora, tu asistente personal. ¿En qué te puedo ayudar hoy?'),
+    makeMessage('aurora', '¡Hola! Soy Aurora. ¿En qué te ayudo hoy?'),
   ]);
   const [appState, setAppState] = useState<AppState>('idle');
   const [pendingAction, setPendingAction] = useState<string | undefined>();
@@ -45,19 +45,19 @@ export function useAurora() {
       const res = await processText(text);
       handleResponse(res);
     } catch (e: any) {
-      addMessage('aurora', 'Lo siento, hubo un error al conectar con el servidor. Verifica tu conexión.');
+      addMessage('aurora', 'Perdón, hubo un error al conectar con el servidor. Revisá tu conexión.');
       setAppState('idle');
     }
   }, []);
 
-  const sendVoice = useCallback(async (audioBase64: string) => {
+  const sendVoice = useCallback(async (audioBase64: string, audioFormat: string) => {
     setAppState('loading');
     try {
-      const res = await processVoice(audioBase64);
+      const res = await processVoice(audioBase64, audioFormat);
       addMessage('user', '[Mensaje de voz]');
       handleResponse(res);
     } catch (e: any) {
-      addMessage('aurora', 'Lo siento, hubo un error al procesar tu voz. Intenta de nuevo.');
+      addMessage('aurora', 'Perdón, hubo un error al procesar tu voz. Intentá de nuevo.');
       setAppState('idle');
     }
   }, []);
@@ -69,7 +69,7 @@ export function useAurora() {
       const res = await confirmAction(pendingAction);
       handleResponse(res);
     } catch (e: any) {
-      addMessage('aurora', 'Lo siento, hubo un error al confirmar la acción.');
+      addMessage('aurora', 'Perdón, hubo un error al confirmar la acción.');
       setAppState('idle');
     }
   }, [pendingAction]);

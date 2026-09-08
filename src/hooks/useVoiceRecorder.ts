@@ -24,7 +24,7 @@ export function useVoiceRecorder() {
     setAudioBase64(null);
   }
 
-  async function stopRecording(): Promise<string> {
+  async function stopRecording(): Promise<{ base64: string; format: string }> {
     if (!recordingRef.current) throw new Error('No active recording');
 
     await recordingRef.current.stopAndUnloadAsync();
@@ -37,8 +37,9 @@ export function useVoiceRecorder() {
     const base64 = await FileSystem.readAsStringAsync(uri, {
       encoding: FileSystem.EncodingType.Base64,
     });
+    const format = uri.split('.').pop()?.split(/[?#]/)[0] || 'm4a';
     setAudioBase64(base64);
-    return base64;
+    return { base64, format };
   }
 
   return { isRecording, startRecording, stopRecording, audioBase64 };
