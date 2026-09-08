@@ -48,3 +48,9 @@ export const radius = {
   xl: 32,
   pill: 999,
 };
+
+// --gradient-aurora (tema AM), noche -> dia
+export const gradientAurora = {
+  colors: ['#1B1B3A', '#3D1E5C', '#7A2D8F', '#C81E78', '#FF5C8A', '#FF8C42', '#FFCB47', '#FFF8F0'] as const,
+  locations: [0, 0.18, 0.35, 0.52, 0.68, 0.82, 0.92, 1] as const,
+};

@@ -18,7 +18,11 @@ import { useVoiceRecorder } from './src/hooks/useVoiceRecorder';
 import { MessageBubble } from './src/components/MessageBubble';
 import { VoiceButton } from './src/components/VoiceButton';
 import { ConfirmationCard } from './src/components/ConfirmationCard';
+import { LoginPhoneScreen } from './src/components/LoginPhoneScreen';
+import { LoginCodeScreen } from './src/components/LoginCodeScreen';
 import { colors, fonts, fontSize, touch, radius } from './src/theme';
+
+type Screen = 'login-phone' | 'login-code' | 'chat';
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -27,15 +31,43 @@ export default function App() {
     Nunito_700Bold,
     Nunito_900Black,
   });
+  const [screen, setScreen] = useState<Screen>('login-phone');
+  const [phone, setPhone] = useState('');
+
+  if (!fontsLoaded) {
+    return <View style={styles.container} />;
+  }
+
+  if (screen === 'login-phone') {
+    return (
+      <LoginPhoneScreen
+        onContinue={(p) => {
+          setPhone(p);
+          setScreen('login-code');
+        }}
+      />
+    );
+  }
+
+  if (screen === 'login-code') {
+    return (
+      <LoginCodeScreen
+        phone={phone}
+        onChangeNumber={() => setScreen('login-phone')}
+        onComplete={() => setScreen('chat')}
+      />
+    );
+  }
+
+  return <ChatScreen />;
+}
+
+function ChatScreen() {
   const { messages, appState, confirmationPrompt, sendText, sendVoice, confirm, cancel } =
     useAurora();
   const { isRecording, startRecording, stopRecording } = useVoiceRecorder();
   const [inputText, setInputText] = useState('');
   const scrollRef = useRef<ScrollView>(null);
-
-  if (!fontsLoaded) {
-    return <View style={styles.container} />;
-  }
 
   async function handleVoicePress() {
     if (isRecording) {
