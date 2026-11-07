@@ -14,12 +14,27 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { colors, fonts, fontSize, touch, radius, gradientAurora } from '../theme';
 
 interface Props {
-  onContinue: (phone: string) => void;
+  /** Pide el código al servidor; si falla, lanza un error con mensaje para la persona. */
+  onContinue: (phone: string) => Promise<void>;
 }
 
 export function LoginPhoneScreen({ onContinue }: Props) {
   const [phone, setPhone] = useState('');
-  const canContinue = phone.trim().length >= 8;
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const canContinue = phone.trim().length >= 8 && !loading;
+
+  async function handleContinue() {
+    setLoading(true);
+    setError(null);
+    try {
+      await onContinue(phone.trim());
+    } catch (e: any) {
+      setError(e?.message ?? 'Algo salió mal. Inténtalo de nuevo.');
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -38,7 +53,7 @@ export function LoginPhoneScreen({ onContinue }: Props) {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <View style={styles.body}>
-          <Text style={styles.screenTitle}>Bienvenida</Text>
+          <Text style={styles.screenTitle}>Te damos la bienvenida</Text>
           <Text style={styles.screenHint}>
             Escribe tu número de teléfono. Te mandamos un código por mensaje.
           </Text>
@@ -59,14 +74,20 @@ export function LoginPhoneScreen({ onContinue }: Props) {
             />
           </View>
 
+          {error && (
+            <Text style={styles.errorText} accessibilityLiveRegion="polite">
+              {error}
+            </Text>
+          )}
+
           <TouchableOpacity
             style={[styles.button, !canContinue && styles.buttonDisabled]}
-            onPress={() => canContinue && onContinue(phone.trim())}
+            onPress={handleContinue}
             activeOpacity={0.8}
             disabled={!canContinue}
             accessibilityLabel="Continuar"
           >
-            <Text style={styles.buttonText}>Continuar</Text>
+            <Text style={styles.buttonText}>{loading ? 'Enviando…' : 'Continuar'}</Text>
           </TouchableOpacity>
 
           <View style={styles.helper}>
@@ -154,6 +175,12 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bodyBold,
     fontSize: fontSize.label,
     color: colors.textPrimary,
+  },
+  errorText: {
+    fontFamily: fonts.bodyBold,
+    fontSize: fontSize.label,
+    color: colors.error,
+    marginTop: 12,
   },
   button: {
     height: touch.comfortable,

@@ -15,20 +15,45 @@ import { CodeInput } from './CodeInput';
 interface Props {
   phone: string;
   onChangeNumber: () => void;
-  onComplete: () => void;
+  /** Verifica el código; si es incorrecto, lanza un error con mensaje para la persona. */
+  onVerify: (code: string) => Promise<void>;
+  /** Pide un código nuevo. */
+  onResend: () => Promise<void>;
 }
 
 const CODE_LENGTH = 6;
 
-export function LoginCodeScreen({ phone, onChangeNumber, onComplete }: Props) {
+export function LoginCodeScreen({ phone, onChangeNumber, onVerify, onResend }: Props) {
   const [code, setCode] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
 
+  // Al completar los seis números se verifica solo; si falla, se limpia para reintentar.
   useEffect(() => {
-    if (code.length === CODE_LENGTH) {
-      const t = setTimeout(onComplete, 600);
-      return () => clearTimeout(t);
-    }
+    if (code.length !== CODE_LENGTH || busy) return;
+    setBusy(true);
+    setError(null);
+    setInfo(null);
+    onVerify(code)
+      .catch((e: any) => {
+        setError(e?.message ?? 'Algo salió mal. Inténtalo de nuevo.');
+        setCode('');
+      })
+      .finally(() => setBusy(false));
   }, [code]);
+
+  async function handleResend() {
+    setError(null);
+    setInfo(null);
+    try {
+      await onResend();
+      setCode('');
+      setInfo('Listo, te mandé un código nuevo.');
+    } catch (e: any) {
+      setError(e?.message ?? 'Algo salió mal. Inténtalo de nuevo.');
+    }
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -57,14 +82,23 @@ export function LoginCodeScreen({ phone, onChangeNumber, onComplete }: Props) {
             onChangeText={(t) => setCode(t.replace(/[^0-9]/g, '').slice(0, CODE_LENGTH))}
             keyboardType="number-pad"
             maxLength={CODE_LENGTH}
+            editable={!busy}
             autoFocus
             accessibilityLabel="Código de seis dígitos"
           />
         </View>
 
+        {busy && <Text style={styles.infoText}>Revisando tu código…</Text>}
+        {info && <Text style={styles.infoText}>{info}</Text>}
+        {error && (
+          <Text style={styles.errorText} accessibilityLiveRegion="polite">
+            {error}
+          </Text>
+        )}
+
         <View style={styles.resendRow}>
           <Text style={styles.resendText}>¿No te llegó?</Text>
-          <TouchableOpacity accessibilityLabel="Mandar de nuevo">
+          <TouchableOpacity onPress={handleResend} accessibilityLabel="Mandar de nuevo">
             <Text style={styles.resendLink}>Mandar de nuevo</Text>
           </TouchableOpacity>
         </View>
@@ -80,7 +114,7 @@ export function LoginCodeScreen({ phone, onChangeNumber, onComplete }: Props) {
 
         <View style={styles.helper}>
           <Text style={styles.helperTitle}>Puedo leerte el código.</Text>
-          <Text style={styles.helperSub}>Si lo recibís, decime "léelo".</Text>
+          <Text style={styles.helperSub}>Si lo recibes, dime "léelo".</Text>
         </View>
       </View>
     </SafeAreaView>
@@ -88,6 +122,18 @@ export function LoginCodeScreen({ phone, onChangeNumber, onComplete }: Props) {
 }
 
 const styles = StyleSheet.create({
+  errorText: {
+    fontFamily: fonts.bodyBold,
+    fontSize: fontSize.label,
+    color: colors.error,
+    marginBottom: 12,
+  },
+  infoText: {
+    fontFamily: fonts.body,
+    fontSize: fontSize.label,
+    color: colors.textSecondary,
+    marginBottom: 12,
+  },
   container: {
     flex: 1,
     backgroundColor: colors.bgCanvas,

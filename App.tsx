@@ -15,6 +15,7 @@ import { useFonts, AtkinsonHyperlegible_400Regular, AtkinsonHyperlegible_700Bold
 import { Nunito_700Bold, Nunito_900Black } from '@expo-google-fonts/nunito';
 import { useAurora } from './src/hooks/useAurora';
 import { setupNotifications } from './src/services/nativeSkills';
+import { requestCode, verifyCode, restoreSession, setUnauthorizedHandler } from './src/services/auth';
 import { useVoiceRecorder } from './src/hooks/useVoiceRecorder';
 import { MessageBubble } from './src/components/MessageBubble';
 import { VoiceButton } from './src/components/VoiceButton';
@@ -23,7 +24,7 @@ import { LoginPhoneScreen } from './src/components/LoginPhoneScreen';
 import { LoginCodeScreen } from './src/components/LoginCodeScreen';
 import { colors, fonts, fontSize, touch, radius } from './src/theme';
 
-type Screen = 'login-phone' | 'login-code' | 'chat';
+type Screen = 'checking' | 'login-phone' | 'login-code' | 'chat';
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -32,21 +33,29 @@ export default function App() {
     Nunito_700Bold,
     Nunito_900Black,
   });
-  const [screen, setScreen] = useState<Screen>('login-phone');
+  const [screen, setScreen] = useState<Screen>('checking');
   const [phone, setPhone] = useState('');
+
+  useEffect(() => {
+    // Retoma la sesión guardada; si el servidor la rechaza más tarde, vuelve al login.
+    setUnauthorizedHandler(() => setScreen('login-phone'));
+    restoreSession().then((ok) => setScreen(ok ? 'chat' : 'login-phone'));
+    return () => setUnauthorizedHandler(null);
+  }, []);
 
   useEffect(() => {
     setupNotifications().catch((e) => console.warn('Notifications setup failed:', e));
   }, []);
 
-  if (!fontsLoaded) {
+  if (!fontsLoaded || screen === 'checking') {
     return <View style={styles.container} />;
   }
 
   if (screen === 'login-phone') {
     return (
       <LoginPhoneScreen
-        onContinue={(p) => {
+        onContinue={async (p) => {
+          await requestCode(p);
           setPhone(p);
           setScreen('login-code');
         }}
@@ -59,7 +68,11 @@ export default function App() {
       <LoginCodeScreen
         phone={phone}
         onChangeNumber={() => setScreen('login-phone')}
-        onComplete={() => setScreen('chat')}
+        onVerify={async (code) => {
+          await verifyCode(phone, code);
+          setScreen('chat');
+        }}
+        onResend={() => requestCode(phone)}
       />
     );
   }
