@@ -25,6 +25,6 @@ export function confirmAction(pendingAction: string): Promise<EngineResponse> {
   return post('/confirm', { pendingAction });
 }
 
-export function cancelAction(): Promise<EngineResponse> {
-  return post('/cancel');
+export function cancelAction(pendingAction?: string): Promise<EngineResponse> {
+  return post('/cancel', pendingAction ? { pendingAction } : undefined);
 }

@@ -106,7 +106,7 @@ export function useAurora() {
   const cancel = useCallback(async () => {
     setAppState('loading');
     try {
-      const res = await cancelAction();
+      const res = await cancelAction(pendingAction);
       handleResponse(res);
     } catch (e: any) {
       addMessage('aurora', 'Acción cancelada.');
@@ -114,7 +114,7 @@ export function useAurora() {
     }
     setPendingAction(undefined);
     setConfirmationPrompt(undefined);
-  }, []);
+  }, [pendingAction]);
 
   // Avisos de la app (p. ej. permisos) dichos por Aurora, sin pasar por el servidor.
   const say = useCallback((text: string) => addMessage('aurora', text), []);
