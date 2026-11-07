@@ -63,8 +63,10 @@ export default function App() {
 }
 
 function ChatScreen() {
-  const { messages, appState, confirmationPrompt, sendText, sendVoice, confirm, cancel } =
-    useAurora();
+  const {
+    messages, appState, confirmationPrompt, sendText, sendVoice, confirm, cancel,
+    say, dismissBlocked, speechEnabled, toggleSpeech,
+  } = useAurora();
   const { isRecording, startRecording, stopRecording } = useVoiceRecorder();
   const [inputText, setInputText] = useState('');
   const scrollRef = useRef<ScrollView>(null);
@@ -76,12 +78,19 @@ function ChatScreen() {
         await sendVoice(base64, format);
       } catch (e: any) {
         console.error('Voice error:', e);
+        say('No pude grabar tu voz. Inténtalo de nuevo o escríbeme tu mensaje.');
       }
     } else {
       try {
         await startRecording();
       } catch (e: any) {
         console.error('Start recording error:', e);
+        const denied = String(e?.message ?? e).includes('permission');
+        say(
+          denied
+            ? 'Necesito permiso para usar el micrófono. Puedes activarlo en los Ajustes del teléfono, o escribirme tu mensaje.'
+            : 'No pude empezar a grabar. Inténtalo de nuevo o escríbeme tu mensaje.'
+        );
       }
     }
   }
@@ -105,7 +114,7 @@ function ChatScreen() {
     if (appState === 'awaiting_confirmation') {
       return (
         <ConfirmationCard
-          prompt={confirmationPrompt ?? '¿Querés continuar?'}
+          prompt={confirmationPrompt ?? '¿Quieres continuar?'}
           onConfirm={confirm}
           onCancel={cancel}
         />
@@ -121,7 +130,7 @@ function ChatScreen() {
           </Text>
           <TouchableOpacity
             style={styles.understoodButton}
-            onPress={() => sendText('entendido')}
+            onPress={dismissBlocked}
             activeOpacity={0.8}
           >
             <Text style={styles.understoodButtonText}>Entendido</Text>
@@ -139,7 +148,7 @@ function ChatScreen() {
             style={styles.textInput}
             value={inputText}
             onChangeText={setInputText}
-            placeholder="Escribí tu mensaje..."
+            placeholder="Escribe tu mensaje..."
             placeholderTextColor={colors.textSecondary}
             multiline={false}
             returnKeyType="send"
@@ -165,8 +174,19 @@ function ChatScreen() {
 
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>🌅 Aurora</Text>
-        <Text style={styles.headerSubtitle}>Tu asistente</Text>
+        <View style={styles.flex}>
+          <Text style={styles.headerTitle}>🌅 Aurora</Text>
+          <Text style={styles.headerSubtitle}>Tu asistente</Text>
+        </View>
+        <TouchableOpacity
+          style={styles.speechToggle}
+          onPress={toggleSpeech}
+          activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel={speechEnabled ? 'Silenciar la voz de Aurora' : 'Activar la voz de Aurora'}
+        >
+          <Text style={styles.speechToggleText}>{speechEnabled ? '🔊 Voz' : '🔇 Voz'}</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Messages + Input */}
@@ -202,6 +222,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: colors.bgCanvas,
     paddingHorizontal: 20,
     paddingTop: 12,
@@ -214,6 +236,22 @@ const styles = StyleSheet.create({
     fontSize: 30,
     color: colors.textPrimary,
     letterSpacing: 0.5,
+  },
+  speechToggle: {
+    minHeight: touch.min,
+    minWidth: touch.min,
+    paddingHorizontal: 16,
+    borderRadius: radius.md,
+    borderWidth: 2,
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.bgElevated,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  speechToggleText: {
+    fontFamily: fonts.bodyBold,
+    fontSize: fontSize.label,
+    color: colors.textPrimary,
   },
   headerSubtitle: {
     fontFamily: fonts.body,

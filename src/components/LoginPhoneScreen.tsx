@@ -40,7 +40,7 @@ export function LoginPhoneScreen({ onContinue }: Props) {
         <View style={styles.body}>
           <Text style={styles.screenTitle}>Bienvenida</Text>
           <Text style={styles.screenHint}>
-            Escribí tu número de teléfono. Te mandamos un código por mensaje.
+            Escribe tu número de teléfono. Te mandamos un código por mensaje.
           </Text>
 
           <Text style={styles.inputLabel}>Número de teléfono</Text>
@@ -70,8 +70,8 @@ export function LoginPhoneScreen({ onContinue }: Props) {
           </TouchableOpacity>
 
           <View style={styles.helper}>
-            <Text style={styles.helperTitle}>¿Querés que te lea esta pantalla?</Text>
-            <Text style={styles.helperSub}>Tocá el círculo y escuchame.</Text>
+            <Text style={styles.helperTitle}>¿Quieres que te lea esta pantalla?</Text>
+            <Text style={styles.helperSub}>Toca el círculo y te escucho.</Text>
           </View>
         </View>
       </KeyboardAvoidingView>

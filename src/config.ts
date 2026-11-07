@@ -1,4 +1,5 @@
-// Change this to your PC's local IP when testing on same WiFi
-// Or use ngrok URL for testing over mobile data
-export const API_BASE_URL = 'http://192.168.1.100:3000';
-// Instructions: run `ipconfig` on PC, find IPv4 address, replace above
+// URL del motor Aurora (aurora-be). Se define en `.env` (ver `.env.example`):
+//   EXPO_PUBLIC_API_URL=http://<IP-de-tu-PC>:3000
+// Debe leerse con notación de punto para que Expo la incluya en el bundle.
+// Recuerda que el servidor debe escuchar fuera de localhost (AURORA_HOST=0.0.0.0).
+export const API_BASE_URL: string = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';

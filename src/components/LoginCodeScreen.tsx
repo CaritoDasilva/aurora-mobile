@@ -43,9 +43,9 @@ export function LoginCodeScreen({ phone, onChangeNumber, onComplete }: Props) {
       </LinearGradient>
 
       <View style={styles.body}>
-        <Text style={styles.screenTitle}>Escribí el código</Text>
+        <Text style={styles.screenTitle}>Escribe el código</Text>
         <Text style={styles.screenHint}>
-          Te mandamos un mensaje a <Text style={styles.bold}>+56 {phone}</Text>. Buscalo y escribí los seis números.
+          Te mandamos un mensaje a <Text style={styles.bold}>+56 {phone}</Text>. Búscalo y escribe los seis números.
         </Text>
 
         <View style={styles.codeWrap}>

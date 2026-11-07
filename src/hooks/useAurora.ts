@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { Message, AppState, EngineResponse } from '../types';
 import { processText, processVoice, confirmAction, cancelAction } from '../services/api';
+import { useSpeech } from './useSpeech';
 
 function makeId() {
   return Math.random().toString(36).slice(2);
@@ -18,8 +19,11 @@ export function useAurora() {
   const [pendingAction, setPendingAction] = useState<string | undefined>();
   const [confirmationPrompt, setConfirmationPrompt] = useState<string | undefined>();
 
+  const { speak, toggle: toggleSpeech, enabled: speechEnabled } = useSpeech();
+
   function addMessage(role: Message['role'], text: string) {
     setMessages((prev) => [...prev, makeMessage(role, text)]);
+    if (role === 'aurora') speak(text);
   }
 
   function handleResponse(res: EngineResponse) {
@@ -45,7 +49,7 @@ export function useAurora() {
       const res = await processText(text);
       handleResponse(res);
     } catch (e: any) {
-      addMessage('aurora', 'Perdón, hubo un error al conectar con el servidor. Revisá tu conexión.');
+      addMessage('aurora', 'Perdón, hubo un error al conectar con el servidor. Revisa tu conexión.');
       setAppState('idle');
     }
   }, []);
@@ -57,7 +61,7 @@ export function useAurora() {
       addMessage('user', '[Mensaje de voz]');
       handleResponse(res);
     } catch (e: any) {
-      addMessage('aurora', 'Perdón, hubo un error al procesar tu voz. Intentá de nuevo.');
+      addMessage('aurora', 'Perdón, hubo un error al procesar tu voz. Inténtalo de nuevo.');
       setAppState('idle');
     }
   }, []);
@@ -87,5 +91,15 @@ export function useAurora() {
     setConfirmationPrompt(undefined);
   }, []);
 
-  return { messages, appState, pendingAction, confirmationPrompt, sendText, sendVoice, confirm, cancel };
+  // Avisos de la app (p. ej. permisos) dichos por Aurora, sin pasar por el servidor.
+  const say = useCallback((text: string) => addMessage('aurora', text), []);
+
+  // "Entendido" tras una acción bloqueada: vuelve al inicio sin llamar al servidor.
+  const dismissBlocked = useCallback(() => setAppState('idle'), []);
+
+  return {
+    messages, appState, pendingAction, confirmationPrompt,
+    sendText, sendVoice, confirm, cancel,
+    say, dismissBlocked, speechEnabled, toggleSpeech,
+  };
 }
