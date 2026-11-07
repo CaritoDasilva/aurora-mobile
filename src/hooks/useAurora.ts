@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { Message, AppState, EngineResponse } from '../types';
 import { processText, processVoice, confirmAction, cancelAction } from '../services/api';
 import { useSpeech } from './useSpeech';
+import { runNativeAction } from '../services/nativeSkills';
 
 function makeId() {
   return Math.random().toString(36).slice(2);
@@ -26,8 +27,32 @@ export function useAurora() {
     if (role === 'aurora') speak(text);
   }
 
+  // Frases de error para la persona mayor, según la acción que falló.
+  function nativeErrorMessage(action: NonNullable<EngineResponse['action']>, e: any): string {
+    if (String(e?.message ?? e).includes('permission')) {
+      return action.type === 'reminder'
+        ? 'Necesito permiso para mostrarte avisos. Puedes activarlo en los Ajustes del teléfono.'
+        : 'Necesito un permiso para hacer eso. Puedes activarlo en los Ajustes del teléfono.';
+    }
+    if (action.type === 'call') return `No pude abrir el teléfono para llamar a ${action.name}.`;
+    if (action.type === 'sms') return `No pude abrir los mensajes para ${action.name}.`;
+    return 'No pude programar el recordatorio. Inténtalo de nuevo.';
+  }
+
+  async function performNativeAction(action: NonNullable<EngineResponse['action']>) {
+    try {
+      // Deja terminar la frase de Aurora antes de que el teléfono cambie de pantalla.
+      if (action.type !== 'reminder') await new Promise((r) => setTimeout(r, 1500));
+      await runNativeAction(action);
+    } catch (e: any) {
+      console.error('Native action error:', e);
+      addMessage('aurora', nativeErrorMessage(action, e));
+    }
+  }
+
   function handleResponse(res: EngineResponse) {
     addMessage('aurora', res.message);
+    if (res.action) void performNativeAction(res.action);
     if (res.status === 'awaiting_confirmation') {
       setPendingAction(res.pendingAction);
       setConfirmationPrompt(res.confirmationPrompt);

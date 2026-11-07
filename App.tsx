@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useFonts, AtkinsonHyperlegible_400Regular, AtkinsonHyperlegible_700Bold } from '@expo-google-fonts/atkinson-hyperlegible';
 import { Nunito_700Bold, Nunito_900Black } from '@expo-google-fonts/nunito';
 import { useAurora } from './src/hooks/useAurora';
+import { setupNotifications } from './src/services/nativeSkills';
 import { useVoiceRecorder } from './src/hooks/useVoiceRecorder';
 import { MessageBubble } from './src/components/MessageBubble';
 import { VoiceButton } from './src/components/VoiceButton';
@@ -33,6 +34,10 @@ export default function App() {
   });
   const [screen, setScreen] = useState<Screen>('login-phone');
   const [phone, setPhone] = useState('');
+
+  useEffect(() => {
+    setupNotifications().catch((e) => console.warn('Notifications setup failed:', e));
+  }, []);
 
   if (!fontsLoaded) {
     return <View style={styles.container} />;
