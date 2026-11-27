@@ -63,7 +63,7 @@ export default function App() {
 }
 
 function ChatScreen() {
-  const { messages, appState, confirmationPrompt, sendText, sendVoice, confirm, cancel } =
+  const { messages, appState, confirmationPrompt, sendText, sendVoice, confirm, cancel, reset } =
     useAurora();
   const { isRecording, startRecording, stopRecording } = useVoiceRecorder();
   const [inputText, setInputText] = useState('');
@@ -121,7 +121,7 @@ function ChatScreen() {
           </Text>
           <TouchableOpacity
             style={styles.understoodButton}
-            onPress={() => sendText('entendido')}
+            onPress={reset}
             activeOpacity={0.8}
           >
             <Text style={styles.understoodButtonText}>Entendido</Text>
